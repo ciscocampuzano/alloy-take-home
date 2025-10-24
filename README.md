@@ -1,5 +1,9 @@
 # Alloy Cloud Security Take-Home: AWS Infrastructure with Terraform
 
+## Main
+
+This repository contains the complete implementation of the Alloy Cloud Security take-home exercise. The detailed rationale, thought process, code splitting decisions, and configuration choices are documented in the **[READ.md](READ.md)** file as requested in the exercise requirements.
+
 ## Overview
 
 This repository contains Terraform infrastructure code for a secure AWS environment designed to demonstrate cloud security best practices. The infrastructure uses well-established **[terraform-aws-modules](https://github.com/terraform-aws-modules)** community modules for better maintainability, security, and adherence to AWS best practices. The infrastructure includes ECS Fargate compute resources and S3 storage with comprehensive security configurations.
@@ -56,7 +60,7 @@ This repository contains Terraform infrastructure code for a secure AWS environm
 
 ### Compute Security
 - **ECS Fargate**: Serverless containers with no EC2 management overhead
-- **Secure Base Image**: Uses AWS-maintained container images (`public.ecr.aws/aws-cli/aws-cli:2.31.21`)
+- **Custom Container Image**: Uses nginx:alpine with Python and boto3 for S3 integration
 - **Container Health Checks**: Built-in health check that verifies S3 bucket access
 - **IAM Roles**: Separate execution and task roles with minimal permissions
 - **CloudWatch Logs**: Centralized logging with retention policies
@@ -68,7 +72,6 @@ This repository contains Terraform infrastructure code for a secure AWS environm
 - **S3 Public Access Block**: Complete blocking of public access
 - **S3 Bucket Policy**: Restrictive policies requiring HTTPS and VPC access
 - **S3 Lifecycle Policies**: Automated data lifecycle management
-- **S3 Replication**: Cross-region backup for disaster recovery
 
 ### Identity and Access Management
 - **Least Privilege**: IAM policies with specific resource and action permissions
@@ -86,7 +89,6 @@ This repository contains Terraform infrastructure code for a secure AWS environm
 ├── s3.tf                     # S3 bucket modules with comprehensive security
 ├── ecs.tf                    # ECS and ALB modules with container definitions
 ├── outputs.tf                # Resource outputs and identifiers
-├── startup.sh                # Reference script showing HTML generation (for documentation)
 ├── .gitignore                # Git ignore file
 ├── README.md                 # This documentation
 ├── architecture-diagram.md   # Detailed Mermaid architecture diagram
@@ -109,26 +111,26 @@ This infrastructure leverages community-maintained Terraform modules for product
 
 **AWS Provider**: ~> 6.0 (using latest features and security patches)
 
-> 📝 See [MODULE_UPDATES.md](MODULE_UPDATES.md) for detailed information about module version updates and compatibility.
+See [MODULE_UPDATES.md](MODULE_UPDATES.md) for detailed information about module version updates and compatibility.
 
 ### Benefits of Using Community Modules
-- ✅ **Battle-tested**: Used by thousands of organizations worldwide
-- ✅ **Best Practices**: Incorporates AWS Well-Architected Framework principles
-- ✅ **Maintained**: Regular updates and security patches
-- ✅ **Comprehensive**: Extensive configuration options
-- ✅ **Documented**: Well-documented with examples
-- ✅ **Reduced Code**: Less custom code to maintain
+- **Battle-tested**: Used by thousands of organizations worldwide
+- **Best Practices**: Incorporates AWS Well-Architected Framework principles
+- **Maintained**: Regular updates and security patches
+- **Comprehensive**: Extensive configuration options
+- **Documented**: Well-documented with examples
+- **Reduced Code**: Less custom code to maintain
 
 ## Configuration Approach
 
 This infrastructure uses **`locals.tf`** instead of `variables.tf` for a monorepo-friendly approach:
 
 ### Why Locals Instead of Variables?
-- ✅ **Monorepo Compatible**: Configuration is version-controlled and environment-specific
-- ✅ **Simpler Deployment**: No need for `terraform.tfvars` files
-- ✅ **Single Source of Truth**: All configuration in one place
-- ✅ **Easy Duplication**: Copy directory for new environments
-- ✅ **No Variable Passing**: Direct access to configuration values
+- **Monorepo Compatible**: Configuration is version-controlled and environment-specific
+- **Simpler Deployment**: No need for `terraform.tfvars` files
+- **Single Source of Truth**: All configuration in one place
+- **Easy Duplication**: Copy directory for new environments
+- **No Variable Passing**: Direct access to configuration values
 
 ### Configuration Structure
 All infrastructure configuration is defined in `locals.tf`:
@@ -146,10 +148,10 @@ resource_prefix = join("-", ["alloy", local.environment, local.project_name])
 ```
 
 This ensures:
-- ✅ **Consistency**: All resources follow the same naming pattern
-- ✅ **Environment Clarity**: Environment is clearly identified in resource names
-- ✅ **Organization**: Resources are easily identifiable and searchable
-- ✅ **No Conflicts**: Different environments don't clash with resource names
+- **Consistency**: All resources follow the same naming pattern
+- **Environment Clarity**: Environment is clearly identified in resource names
+- **Organization**: Resources are easily identifiable and searchable
+- **No Conflicts**: Different environments don't clash with resource names
 
 **Examples of resource names**:
 - VPC: `alloy-dev-take-home-vpc`
@@ -194,41 +196,31 @@ To create a new environment, simply duplicate the directory and modify `locals.t
 - Lifecycle policies for cost optimization
 - Bucket policies restricting access to VPC resources
 
-### 5. Container Health Checks with S3 Access Verification
-**Decision**: Use AWS CLI official image with inline health check script
+### 5. Custom Container Image
+**Decision**: Use custom nginx:alpine image with Python and boto3
 **Rationale**:
-- No custom image building required - uses official AWS CLI image directly
-- Health check tests S3 bucket permissions at startup
-- Generates dynamic HTML showing S3 access status
-- Uses Python's built-in HTTP server (lightweight, no additional dependencies)
-- Provides real-time verification of IAM role permissions
-- Demonstrates security validation in production workloads
+- Combines nginx web server with Python for S3 integration
+- Uses boto3 for S3 access (no AWS CLI required)
+- Demonstrates container security best practices
+- Provides production-ready web serving capabilities
 
 ## Container Implementation
 
-The infrastructure uses the official AWS CLI image (`public.ecr.aws/aws-cli/aws-cli:2.31.21`) with no custom building required:
+The infrastructure uses a custom Docker image built from nginx:alpine with Python and boto3:
 
 ### How It Works
-1. Container starts with the AWS CLI image
-2. Inline startup command tests S3 bucket access using `aws s3 ls`
-3. Generates HTML page dynamically based on test results
-4. Starts Python's built-in HTTP server on port 8080
-5. Serves beautiful HTML page showing S3 access status
-
-### Health Check Endpoint
-- **Port**: 8080 (configurable)
-- **Main Endpoint**: `http://<alb-dns>/` - Beautiful HTML dashboard
-- **Health Endpoint**: `http://<alb-dns>/health` - Simple "OK" response
-- **Check Interval**: Every 30 seconds via ECS health checks
-- **Functionality**: Tests S3 bucket access and displays results
+1. Container starts with custom nginx:alpine image
+2. Startup script fetches HTML content from S3 using boto3
+3. Serves content via nginx on port 80
+4. Falls back to default HTML if S3 access fails
+5. Uses ECS task role for S3 authentication
 
 ### Container Features
-- ✅ **No Custom Image**: Uses official AWS CLI image directly
-- ✅ **Dynamic HTML**: Generates page based on S3 access test
-- ✅ **Lightweight Server**: Python built-in HTTP server
-- ✅ **Security Validation**: Verifies IAM permissions in real-time
-- ✅ **Visual Dashboard**: Shows all security features implemented
-- ✅ **Detailed Logging**: All checks logged to CloudWatch
+- **Custom Image**: nginx:alpine with Python and boto3
+- **S3 Integration**: Fetches HTML content from S3 bucket
+- **Production Ready**: Proper nginx configuration and error handling
+- **Security**: Uses IAM roles for S3 access, no hardcoded credentials
+- **Scalable**: Can be easily deployed to multiple environments
 
 ## Deployment Instructions
 
@@ -353,32 +345,6 @@ This infrastructure follows several security standards and best practices:
 - **CIS AWS Foundations Benchmark**: Security configuration guidelines
 - **NIST Cybersecurity Framework**: Identify, Protect, Detect, Respond, Recover
 - **SOC 2 Type II**: Security, availability, processing integrity, confidentiality, privacy
-
-## Troubleshooting
-
-### Common Issues
-
-1. **VPC Endpoint Connection Issues**
-   - Ensure security groups allow HTTPS traffic (port 443)
-   - Verify VPC endpoint is in the correct subnets
-   - Check DNS resolution in private subnets
-
-2. **ECS Task Startup Issues**
-   - Verify IAM roles have correct permissions
-   - Check CloudWatch logs for container errors
-   - Ensure security groups allow necessary traffic
-
-3. **S3 Access Issues**
-   - Verify bucket policy allows VPC access
-   - Check IAM role permissions
-   - Ensure HTTPS is enforced in bucket policy
-
-### Support
-
-For questions or issues with this infrastructure, please refer to:
-- AWS documentation for specific services
-- Terraform documentation for infrastructure management
-- CloudWatch logs for application debugging
 
 ## License
 
