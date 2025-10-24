@@ -1,0 +1,19 @@
+# Terraform files
+*.tf
+*.tfvars
+*.tfstate
+*.tfstate.backup
+.terraform/
+.terraform.lock.hcl
+
+# Documentation
+*.md
+README*
+
+# Git
+.git/
+.gitignore
+
+# Other files
+*.log
+.DS_Store

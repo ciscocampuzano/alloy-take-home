@@ -91,19 +91,25 @@ This repository contains Terraform infrastructure code for a secure AWS environm
 ├── README.md                 # This documentation
 ├── architecture-diagram.md   # Detailed Mermaid architecture diagram
 ├── HEALTHCHECK.md            # Detailed health check documentation
-└── MODULES.md                # Terraform modules migration documentation
+├── MODULES.md                # Terraform modules migration documentation
+├── RESOURCE_NAMING.md        # Resource naming convention documentation
+└── MODULE_UPDATES.md         # Module version updates documentation
 ```
 
 ## Terraform Modules Used
 
 This infrastructure leverages community-maintained Terraform modules for production-grade AWS resources:
 
-- **[terraform-aws-vpc](https://github.com/terraform-aws-modules/terraform-aws-vpc)** - VPC, subnets, NAT gateways, and VPC endpoints
-- **[terraform-aws-security-group](https://github.com/terraform-aws-modules/terraform-aws-security-group)** - Security groups with best practices
-- **[terraform-aws-s3-bucket](https://github.com/terraform-aws-modules/terraform-aws-s3-bucket)** - S3 buckets with comprehensive security features
-- **[terraform-aws-iam](https://github.com/terraform-aws-modules/terraform-aws-iam)** - IAM roles and policies
-- **[terraform-aws-ecs](https://github.com/terraform-aws-modules/terraform-aws-ecs)** - ECS cluster and services
-- **[terraform-aws-alb](https://github.com/terraform-aws-modules/terraform-aws-alb)** - Application Load Balancer
+- **[terraform-aws-vpc](https://github.com/terraform-aws-modules/terraform-aws-vpc)** (~> 5.0) - VPC, subnets, NAT gateways, and VPC endpoints
+- **[terraform-aws-security-group](https://github.com/terraform-aws-modules/terraform-aws-security-group)** (~> 5.0) - Security groups with best practices
+- **[terraform-aws-s3-bucket](https://github.com/terraform-aws-modules/terraform-aws-s3-bucket)** (~> 5.0) - S3 buckets with comprehensive security features
+- **[terraform-aws-iam](https://github.com/terraform-aws-modules/terraform-aws-iam)** (~> 5.0) - IAM roles and policies
+- **[terraform-aws-ecs](https://github.com/terraform-aws-modules/terraform-aws-ecs)** (~> 6.0) - ECS cluster and services
+- **[terraform-aws-alb](https://github.com/terraform-aws-modules/terraform-aws-alb)** (~> 9.0) - Application Load Balancer
+
+**AWS Provider**: ~> 6.0 (using latest features and security patches)
+
+> 📝 See [MODULE_UPDATES.md](MODULE_UPDATES.md) for detailed information about module version updates and compatibility.
 
 ### Benefits of Using Community Modules
 - ✅ **Battle-tested**: Used by thousands of organizations worldwide
@@ -130,6 +136,26 @@ All infrastructure configuration is defined in `locals.tf`:
 - Network configuration (VPC CIDR, subnets, AZs)
 - Container settings (image, CPU, memory, port)
 - Common tags applied to all resources
+- **Resource naming convention**: All AWS resources follow the pattern `alloy-{environment}-{project-name}`
+
+### Resource Naming Convention
+A standardized naming convention is implemented using `local.resource_prefix`:
+```hcl
+resource_prefix = join("-", ["alloy", local.environment, local.project_name])
+# Example: "alloy-dev-take-home"
+```
+
+This ensures:
+- ✅ **Consistency**: All resources follow the same naming pattern
+- ✅ **Environment Clarity**: Environment is clearly identified in resource names
+- ✅ **Organization**: Resources are easily identifiable and searchable
+- ✅ **No Conflicts**: Different environments don't clash with resource names
+
+**Examples of resource names**:
+- VPC: `alloy-dev-take-home-vpc`
+- ECS Cluster: `alloy-dev-take-home-cluster`
+- S3 Bucket: `alloy-dev-take-home-{random-suffix}`
+- IAM Role: `alloy-dev-take-home-ecs-task-role`
 
 To create a new environment, simply duplicate the directory and modify `locals.tf`.
 
