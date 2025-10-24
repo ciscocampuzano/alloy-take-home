@@ -26,4 +26,4 @@ The network architecture is using the aws well architected framework:
 
 In order to allow Compute resources to access other AWS resources we are provision IAM roles with well defined policies, narrow actions and resource following the least privilege principle.
 
-### 
+### S3 
