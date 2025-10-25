@@ -65,6 +65,8 @@ To keep the repository clean and avoid boilerplate, I used established and commu
 
 Finally, while I would normally use an S3 hosted backend for state management (unless HashiCorp Cloud Platform is available), I have used a local backend for this exercise, as provisioning a remote backend within the same stack creates a "chicken and egg"  situation.
 
+Note: In order to implement policy as code and some basic security checks, I am using a github workflows to run scans: Checkov, semgrep.
+
 ## Resources
 
 ### VPC
@@ -104,3 +106,6 @@ Network Security: A strict Bucket Policy prevents insecure connections and speci
 I chose ECS Fargate because it offers a straightforward and reliable way to run the compute workload while providing security advantages inherent in its design: lighter-weight isolation, faster deployment, and shorter lifespans all reduce the attack surface. I have set specific port mappings and ensured read-only filesystems are used where possible. For monitoring and auditability, a dedicated CloudWatch log group is configured.
 There is also an Application Load Balancer used to front the workload and give us HA.
 
+### KMS
+
+We are using KMS for S3 and Logs encryption. AWS managed keys don't allow sharing cross account, so we are using Customer Managed Keys (CMK) in case the data store needs to be backed up to a different account for Disaster Recovery. 

@@ -1,6 +1,3 @@
-# S3 Bucket with Comprehensive Security Configurations
-# Source: https://github.com/terraform-aws-modules/terraform-aws-s3-bucket
-
 # Random string for unique bucket name
 resource "random_string" "bucket_suffix" {
   length  = 8
@@ -30,7 +27,8 @@ module "s3_bucket" {
   server_side_encryption_configuration = {
     rule = {
       apply_server_side_encryption_by_default = {
-        sse_algorithm = "AES256"
+        sse_algorithm     = "aws:kms"
+        kms_master_key_id = aws_kms_key.application.arn
       }
       bucket_key_enabled = true
     }
@@ -165,7 +163,8 @@ module "s3_bucket_logs" {
   server_side_encryption_configuration = {
     rule = {
       apply_server_side_encryption_by_default = {
-        sse_algorithm = "AES256"
+        sse_algorithm     = "aws:kms"
+        kms_master_key_id = aws_kms_key.application.arn
       }
       bucket_key_enabled = true
     }
