@@ -103,3 +103,4 @@ Network Security: A strict Bucket Policy prevents insecure connections and speci
 
 I chose ECS Fargate because it offers a straightforward and reliable way to run the compute workload while providing security advantages inherent in its design: lighter-weight isolation, faster deployment, and shorter lifespans all reduce the attack surface. I have set specific port mappings and ensured read-only filesystems are used where possible. For monitoring and auditability, a dedicated CloudWatch log group is configured.
 There is also an Application Load Balancer used to front the workload and give us HA.
+
