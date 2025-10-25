@@ -1,16 +1,3 @@
-# ECS Cluster and Service Configuration
-# Source: https://github.com/terraform-aws-modules/terraform-aws-ecs
-
-# CloudWatch Log Group
-resource "aws_cloudwatch_log_group" "ecs" {
-  name              = "/aws/ecs/${local.resource_prefix}"
-  retention_in_days = 30
-
-  tags = {
-    Name = "${local.resource_prefix}-ecs-logs"
-  }
-}
-
 # ECS Cluster Module
 module "ecs_cluster" {
   source  = "terraform-aws-modules/ecs/aws//modules/cluster"
@@ -20,62 +7,6 @@ module "ecs_cluster" {
 
   tags = {
     Name        = "${local.resource_prefix}-cluster"
-    Environment = local.environment
-  }
-}
-
-# Application Load Balancer Module
-module "alb" {
-  source  = "terraform-aws-modules/alb/aws"
-  version = "~> 10.0.2"
-
-  name = "${local.resource_prefix}-alb"
-
-  load_balancer_type = "application"
-  vpc_id             = module.vpc.vpc_id
-  subnets            = module.vpc.public_subnets
-  security_groups    = [module.alb_sg.security_group_id]
-
-  enable_deletion_protection = false
-
-  # Target groups
-  target_groups = {
-    ecs = {
-      name_prefix      = "ecs-"
-      backend_protocol = "HTTP"
-      backend_port     = local.container_port
-      target_type      = "ip"
-
-      health_check = {
-        enabled             = true
-        healthy_threshold   = 2
-        interval            = 30
-        matcher             = "200"
-        path                = "/health"
-        port                = "traffic-port"
-        protocol            = "HTTP"
-        timeout             = 5
-        unhealthy_threshold = 2
-      }
-
-      create_attachment = false
-    }
-  }
-
-  # Listeners
-  listeners = {
-    http = {
-      port     = 80
-      protocol = "HTTP"
-
-      forward = {
-        target_group_key = "ecs"
-      }
-    }
-  }
-
-  tags = {
-    Name        = "${local.resource_prefix}-alb"
     Environment = local.environment
   }
 }
@@ -217,5 +148,71 @@ module "ecs_service" {
   tags = {
     Name        = "${local.resource_prefix}-service"
     Environment = local.environment
+  }
+}
+
+# Application Load Balancer Module
+module "alb" {
+  source  = "terraform-aws-modules/alb/aws"
+  version = "~> 10.0.2"
+
+  name = "${local.resource_prefix}-alb"
+
+  load_balancer_type = "application"
+  vpc_id             = module.vpc.vpc_id
+  subnets            = module.vpc.public_subnets
+  security_groups    = [module.alb_sg.security_group_id]
+
+  enable_deletion_protection = false
+
+  # Target groups
+  target_groups = {
+    ecs = {
+      name_prefix      = "ecs-"
+      backend_protocol = "HTTP"
+      backend_port     = local.container_port
+      target_type      = "ip"
+
+      health_check = {
+        enabled             = true
+        healthy_threshold   = 2
+        interval            = 30
+        matcher             = "200"
+        path                = "/health"
+        port                = "traffic-port"
+        protocol            = "HTTP"
+        timeout             = 5
+        unhealthy_threshold = 2
+      }
+
+      create_attachment = false
+    }
+  }
+
+  # Listeners
+  listeners = {
+    http = {
+      port     = 80
+      protocol = "HTTP"
+
+      forward = {
+        target_group_key = "ecs"
+      }
+    }
+  }
+
+  tags = {
+    Name        = "${local.resource_prefix}-alb"
+    Environment = local.environment
+  }
+}
+
+# CloudWatch Log Group
+resource "aws_cloudwatch_log_group" "ecs" {
+  name              = "/aws/ecs/${local.resource_prefix}"
+  retention_in_days = 30
+
+  tags = {
+    Name = "${local.resource_prefix}-ecs-logs"
   }
 }
