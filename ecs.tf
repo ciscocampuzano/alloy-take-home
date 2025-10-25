@@ -1,6 +1,3 @@
-# Data source for AWS account information
-data "aws_caller_identity" "current" {}
-
 # ECS Cluster Module
 module "ecs_cluster" {
   source  = "terraform-aws-modules/ecs/aws//modules/cluster"
@@ -210,53 +207,11 @@ module "alb" {
   }
 }
 
-# KMS Key for CloudWatch Log Group Encryption
-resource "aws_kms_key" "cloudwatch_logs" {
-  description             = "KMS key for CloudWatch log group encryption"
-  deletion_window_in_days = 7
-  enable_key_rotation     = true
-
-  tags = {
-    Name        = "${local.resource_prefix}-cloudwatch-logs-key"
-    Environment = local.environment
-  }
-}
-
-# KMS Key Policy for CloudWatch Logs
-resource "aws_kms_key_policy" "cloudwatch_logs" {
-  key_id = aws_kms_key.cloudwatch_logs.id
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Sid    = "Enable CloudWatch Logs"
-        Effect = "Allow"
-        Principal = {
-          Service = "logs.${local.aws_region}.amazonaws.com"
-        }
-        Action = [
-          "kms:Encrypt",
-          "kms:Decrypt",
-          "kms:ReEncrypt*",
-          "kms:GenerateDataKey*",
-          "kms:DescribeKey"
-        ]
-        Resource = "*"
-        Condition = {
-          ArnEquals = {
-            "kms:EncryptionContext:aws:logs:arn" = "arn:aws:logs:${local.aws_region}:${data.aws_caller_identity.current.account_id}:log-group:/aws/ecs/${local.resource_prefix}"
-          }
-        }
-      }
-    ]
-  })
-}
-
 # CloudWatch Log Group
 resource "aws_cloudwatch_log_group" "ecs" {
   name              = "/aws/ecs/${local.resource_prefix}"
   retention_in_days = 30
-  kms_key_id        = aws_kms_key.cloudwatch_logs.arn
+  kms_key_id        = aws_kms_key.application.arn
 
   tags = {
     Name = "${local.resource_prefix}-ecs-logs"

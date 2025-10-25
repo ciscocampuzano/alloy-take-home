@@ -25,5 +25,3 @@ jobs:
         uses: returntocorp/semgrep-action@v1
         with:
           config: p/terraform
-          generateSarif: "1"
-          generateGitHubOutput: "1"
