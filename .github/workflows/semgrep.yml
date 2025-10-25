@@ -1,0 +1,24 @@
+name: Semgrep Security Scan
+
+on:
+  pull_request:
+    paths:
+      - '**.tf'
+      - '**.py'
+      - '**.sh'
+
+jobs:
+  semgrep:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Semgrep
+        uses: returntocorp/semgrep-action@v1
+        with:
+          config: p/terraform
+          generateSarif: "1"
+          generateGitHubOutput: "1"
