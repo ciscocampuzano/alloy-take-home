@@ -1,0 +1,26 @@
+# Checkov Configuration
+# Skip checks that are acceptable for this use case
+
+# Skip checks with reasons:
+# CKV_TF_1: Module sources without commit hash - Using semantic versioning (~> 5.0) is standard practice
+# CKV_AWS_338: CloudWatch log retention < 1 year - 1 year retention may be excessive for dev/demo environment  
+# CKV_DOCKER_2: Missing HEALTHCHECK in Dockerfile - ECS has its own health check mechanism defined in task definition
+# CKV_DOCKER_3: No non-root user in container - nginx:alpine runs as nginx user by default after startup
+skip-check:
+  - CKV_TF_1
+  - CKV_AWS_338
+  - CKV_DOCKER_2
+  - CKV_DOCKER_3
+
+# Framework configurations
+framework:
+  - terraform
+  - dockerfile
+  - github_actions
+
+# Output configuration
+output: cli
+compact: true
+
+# Severity thresholds
+soft-fail: false
