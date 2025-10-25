@@ -131,6 +131,17 @@ output "cloudwatch_log_group_arn" {
   value       = aws_cloudwatch_log_group.ecs.arn
 }
 
+# KMS Outputs
+output "cloudwatch_logs_kms_key_id" {
+  description = "ID of the KMS key for CloudWatch logs"
+  value       = aws_kms_key.cloudwatch_logs.id
+}
+
+output "cloudwatch_logs_kms_key_arn" {
+  description = "ARN of the KMS key for CloudWatch logs"
+  value       = aws_kms_key.cloudwatch_logs.arn
+}
+
 # Security Group Outputs
 output "security_group_ecs_tasks_id" {
   description = "ID of the ECS tasks security group"

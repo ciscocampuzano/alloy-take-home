@@ -186,9 +186,9 @@ resource "aws_s3_object" "index_html" {
   bucket = module.s3_bucket.s3_bucket_id
   key    = "index.html"
   source = "${path.module}/index.html"
-  
+
   content_type = "text/html"
-  
+
   tags = {
     Name        = "${local.resource_prefix}-index-html"
     Environment = local.environment
