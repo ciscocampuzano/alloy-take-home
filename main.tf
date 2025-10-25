@@ -15,3 +15,4 @@ provider "aws" {
     tags = local.common_tags
   }
 }
+
