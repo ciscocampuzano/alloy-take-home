@@ -34,8 +34,8 @@ resource "aws_kms_key_policy" "application" {
         ]
         Resource = "*"
         Condition = {
-          ArnEquals = {
-            "kms:EncryptionContext:aws:logs:arn" = "arn:aws:logs:${local.aws_region}:${data.aws_caller_identity.current.account_id}:log-group:/aws/ecs/${local.resource_prefix}"
+          StringEquals = {
+            "aws:SourceAccount" = data.aws_caller_identity.current.account_id
           }
         }
       },
@@ -68,6 +68,17 @@ resource "aws_kms_key_policy" "application" {
         Action = [
           "kms:Decrypt",
           "kms:DescribeKey"
+        ]
+        Resource = "*"
+      },
+      {
+        Sid    = "Enable Key Management"
+        Effect = "Allow"
+        Principal = {
+          AWS = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"
+        }
+        Action = [
+          "kms:*"
         ]
         Resource = "*"
       }
