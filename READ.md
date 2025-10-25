@@ -8,6 +8,45 @@ To ensure the exercise is fully self-contained, the S3 object (the index.html fi
 
 Future Improvements: In a real-world scenario, the immediate next step would be to implement HTTPS for the Load Balancer using Route53 and AWS Certificate Manager (ACM). This was omitted here only because it requires a live domain, which adds external dependency and complexity to the exercise.
 
+## Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                        AWS Account                              │
+│                                                                 │
+│  ┌─────────────────┐    ┌─────────────────┐                   │
+│  │   Public Subnet │    │   Public Subnet │                   │
+│  │   (AZ-1a)       │    │   (AZ-1b)       │                   │
+│  │                 │    │                 │                   │
+│  │ ┌─────────────┐ │    │ ┌─────────────┐ │                   │
+│  │ │     ALB     │ │    │ │ NAT Gateway │ │                   │
+│  │ └─────────────┘ │    │ └─────────────┘ │                   │
+│  └─────────────────┘    └─────────────────┘                   │
+│           │                       │                           │
+│           │                       │                           │
+│  ┌─────────────────┐    ┌─────────────────┐                   │
+│  │  Private Subnet  │    │  Private Subnet │                   │
+│  │   (AZ-1a)       │    │   (AZ-1b)       │                   │
+│  │                 │    │                 │                   │
+│  │ ┌─────────────┐ │    │ ┌─────────────┐ │                   │
+│  │ │ ECS Service │ │    │ │ ECS Service │ │                   │
+│  │ │ (Fargate)   │ │    │ │ (Fargate)   │ │                   │
+│  │ └─────────────┘ │    │ └─────────────┘ │                   │
+│  └─────────────────┘    └─────────────────┘                   │
+│           │                       │                           │
+│           └───────────┬───────────┘                           │
+│                       │                                       │
+│  ┌─────────────────────────────────────────────────────────┐ │
+│  │                    AWS Services                         │ │
+│  │                                                         │ │
+│  │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐      │ │
+│  │  │     S3      │  │ CloudWatch  │  │    ECR      │      │ │
+│  │  │   Bucket    │  │    Logs     │  │  (Images)   │      │ │
+│  │  └─────────────┘  └─────────────┘  └─────────────┘      │ │
+│  └─────────────────────────────────────────────────────────┘ │
+└─────────────────────────────────────────────────────────────────┘
+```
+
 ## Choice of Compute and Data Store
 
 I chose serverless options for both the compute (ECS Fargate) and the data store (S3) to best showcase how security features are managed, defined, and enforced via Terraform.
@@ -63,3 +102,4 @@ Network Security: A strict Bucket Policy prevents insecure connections and speci
 ### ECS Fargate
 
 I chose ECS Fargate because it offers a straightforward and reliable way to run the compute workload while providing security advantages inherent in its design: lighter-weight isolation, faster deployment, and shorter lifespans all reduce the attack surface. I have set specific port mappings and ensured read-only filesystems are used where possible. For monitoring and auditability, a dedicated CloudWatch log group is configured.
+There is also an Application Load Balancer used to front the workload and give us HA.

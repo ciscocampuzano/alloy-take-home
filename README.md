@@ -91,11 +91,8 @@ This repository contains Terraform infrastructure code for a secure AWS environm
 ├── outputs.tf                # Resource outputs and identifiers
 ├── .gitignore                # Git ignore file
 ├── README.md                 # This documentation
-├── architecture-diagram.md   # Detailed Mermaid architecture diagram
-├── HEALTHCHECK.md            # Detailed health check documentation
-├── MODULES.md                # Terraform modules migration documentation
-├── RESOURCE_NAMING.md        # Resource naming convention documentation
-└── MODULE_UPDATES.md         # Module version updates documentation
+├── READ.md                   # Required rationale
+└── architecture-diagram.md   # Detailed Mermaid architecture diagram
 ```
 
 ## Terraform Modules Used
