@@ -5,6 +5,10 @@ on:
     paths:
       - '**.tf'
 
+permissions:
+  contents: read
+  pull-requests: read
+
 jobs:
   terraform-lint:
     name: Terraform Lint and Validate
